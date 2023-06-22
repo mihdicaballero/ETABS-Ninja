@@ -1,4 +1,4 @@
-# ETABS-Ninja
+# ETABS-Ninja 🥷
 
 Welcome to the ETABS-Ninja repository! This repository is a collection of Python functions and scripts that utilize the ETABS API to empower users in efficiently interacting with their ETABS models, setting parameters, extracting information, and creating engaging presentations and reports.
 
@@ -46,5 +46,5 @@ Please note that the scripts provided in this repository are community-driven an
 
 For any issues, suggestions, or queries, please create an issue in the repository, and we'll be glad to assist you.
 
-Become an ETABS-Ninja and empower your structural analysis with ETABS API!
+Become an ETABS-Ninja 🥷 and empower your structural analysis with ETABS API!
 
