@@ -48,3 +48,6 @@ For any issues, suggestions, or queries, please create an issue in the repositor
 
 Become an ETABS-Ninja 🥷 and empower your structural analysis with ETABS API!
 
+## Contact
+Let's chat in LinkedIn: [Mihdí Caballero](https://www.linkedin.com/in/mihdicaballero/)
+
