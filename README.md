@@ -1,10 +1,10 @@
 # ETABS-Ninja
 
-Welcome to the ETABS-Ninja repository! This repository is a collection of Python scripts that utilize the ETABS API to empower users in efficiently interacting with their ETABS models, setting parameters, extracting information, and creating engaging presentations and reports.
+Welcome to the ETABS-Ninja repository! This repository is a collection of Python functions and scripts that utilize the ETABS API to empower users in efficiently interacting with their ETABS models, setting parameters, extracting information, and creating engaging presentations and reports.
 
 ## Overview
 
-ETABS, a widely-used software for structural analysis and design, provides a powerful API that allows users to automate tasks, access model data, and perform complex operations. The ETABS-Ninja repository aims to harness the potential of the ETABS API by providing a curated set of scripts that enable users to leverage the API's capabilities through Python.
+ETABS, a widely-used software for structural analysis and design, provides a powerful API that allows users to automate tasks, access model data, and perform complex operations. The ETABS-Ninja repository aims to harness the potential of the ETABS API by providing a curated set of functions and scripts that enable users to leverage the API's capabilities through Python.
 
 ## Features
 
