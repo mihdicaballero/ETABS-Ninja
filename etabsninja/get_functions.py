@@ -2,7 +2,7 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from general_functions import *
+from etabsninja.general_functions import *
 
 def get_story_data(SapModel):
     """
