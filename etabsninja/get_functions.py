@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from etabsninja.general_functions import *
+from colorama import Fore, Style
 
 def get_story_data(SapModel):
     """
@@ -232,6 +233,7 @@ def get_StoryDriftsForStories(SapModel, LoadCaseList=["Dead"], predefined_max_dr
     max_drift_x = df['DriftX_max'].max()
     max_drift_y = df['DriftY_max'].max()
 
+    bold_terminal("Story drift for stories check")
     FU("Drift X", max_drift_x, predefined_max_drift)
     FU("Drift Y", max_drift_y, predefined_max_drift)
 
@@ -287,13 +289,19 @@ def get_StoryDriftsForJoints(SapModel, LoadCaseList=["Dead"], GroupName="All", p
     max_drift_x = df['DriftX_max'].max()
     max_drift_y = df['DriftY_max'].max()
 
+    bold_terminal("Story drift for selected joints check")
     FU("Drift X", max_drift_x, predefined_max_drift)
     FU("Drift Y", max_drift_y, predefined_max_drift)
     
     return df
 
-def get_DiaphragmCMDisplacements(SapModel, LoadCaseList=["Dead"], building_height = 100):
+def get_DiaphragmCMDisplacements(SapModel, LoadCaseList=["Dead"], building_height = 100,max_BuildingDrift=1/400):
     """
+    Parameters:
+        SapModel: Active SapModel to get results from.
+        LoadCaseList (list): List of load cases to get results from. 
+        building_height (int): Total building height, in ft.
+        max_BuildingDrift (float): Maximum alllowable building drift.
     returns:
     df (DataFrame). A data frame with all the Center of Mass displacement of the stories for a list of cases. 
     """
@@ -341,7 +349,8 @@ def get_DiaphragmCMDisplacements(SapModel, LoadCaseList=["Dead"], building_heigh
     max_displacement_x = df['UX'].max()
     max_displacement_y = df['UY'].max()
 
-    FU("CM Displacement X", max_displacement_x, building_height*12/400)
-    FU("CM Displacement Y", max_displacement_y, building_height*12/400)
+    bold_terminal("Diaphragm Center of Mass total displacement check")
+    FU("CM Displacement X", max_displacement_x, building_height*12*max_BuildingDrift)
+    FU("CM Displacement Y", max_displacement_y, building_height*12*max_BuildingDrift)
 
     return df
