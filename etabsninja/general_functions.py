@@ -1,7 +1,19 @@
 
 from colorama import Fore, Style
 
-def FU(element, value, comparison_value):
+def FU(element: str, value: float, comparison_value: float) -> None:
+    """
+    Calculates the demand capacity ratio (DCR) and provides a verification message based on the comparison between
+    the value and the comparison value.
+
+    Parameters:
+        element (str): The name or identifier of the element being analyzed.
+        value (float): The actual value to be compared.
+        comparison_value (float): The reference or target value for comparison.
+
+    Returns:
+        None
+    """
     # Calculate the demand capacity ratio
     DCR = value / comparison_value
 
@@ -15,6 +27,18 @@ def FU(element, value, comparison_value):
 
     # Print the formatted result
     print(formatted_message)
+
+def bold_terminal(text: str) -> None:
+    """
+    Prints the specified text in bold in the terminal.
+
+    Parameters:
+        text (str): The text to be printed in bold.
+
+    Returns:
+        None
+    """
+    print(Fore.WHITE + Style.BRIGHT + text + Style.RESET_ALL)
 
 # # Example usage
 # element = "Drift X"
