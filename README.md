@@ -4,11 +4,11 @@ Welcome to the ETABS-Ninja repository! This repository is a collection of Python
 
 ## Overview
 
-ETABS, a widely-used software for structural analysis and design, provides a powerful API that allows users to automate tasks, access model data, and perform complex operations. The ETABS-Ninja repository aims to harness the potential of the ETABS API by providing a curated set of functions and scripts that enable users to leverage the API's capabilities through Python.
+The ETABS-Ninja repository aims to harness the potential of the ETABS API by providing a curated set of functions and scripts that enable users to leverage the API's capabilities through Python.
 
 ## Features
 
-- **Automation:** Automate repetitive tasks and streamline your workflow within ETABS using the ETABS-Ninja scripts. Execute batch operations, create templates, and speed up your modeling process.
+- **Automation:** Automate repetitive tasks and streamline your workflow within ETABS using the ETABS-Ninja scripts. 
 
 - **Model Interaction:** Interact with your ETABS models programmatically. Set parameters, modify structural elements, apply loads and constraints, and perform other operations, all through Python scripts.
 
@@ -21,14 +21,14 @@ ETABS, a widely-used software for structural analysis and design, provides a pow
 To get started with ETABS-Ninja, follow these steps:
 
 1. Clone the repository to your local machine using the following command:
-git clone https://github.com/your-username/etabs-ninja.git
+`git clone https://github.com/your-username/etabs-ninja.git`
 
 2. Install the required dependencies by running:
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 3. Browse the collection of scripts in the repository and select the ones that align with your requirements. Feel free to modify and customize them to suit your specific needs.
 
-4. Execute the Python scripts using your preferred Python environment. Make sure to provide the necessary inputs, such as the path to your ETABS model file, parameters, and script-specific options.
+4. Execute the Python scripts using your preferred Python environment. 
 
 5. Explore the available documentation, comments within the scripts, and the ETABS API documentation to understand the capabilities and extend the functionality of the ETABS-Ninja scripts to fit your project requirements.
 

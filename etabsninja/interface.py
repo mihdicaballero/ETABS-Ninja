@@ -1,7 +1,5 @@
 import comtypes.client
-import comtypes.gen.ETABSv1
 import sys
-
 
 #create API helper object
 helper = comtypes.client.CreateObject('ETABSv1.Helper')
