@@ -243,6 +243,7 @@ def get_StoryDriftsForJoints(SapModel, LoadCaseList=["Dead"], GroupName="All", p
     """
     returns:
     df (DataFrame). A data frame with all the drifts of selected column Joints for all the stories. 
+    test
     """
     JointsGroupName = GroupName # Put "All" for all nodes of the model
     TableName = "Joint Drifts"
