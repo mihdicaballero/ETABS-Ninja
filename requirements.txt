@@ -1,5 +1,5 @@
-pandas
-seaborn
-matplotlib
-comtypes
-colorama
+pandas >= 1.5.3
+seaborn >= 0.12.2
+matplotlib >= 3.7.1
+comtypes == 1.2.0
+colorama >= 0.4.6

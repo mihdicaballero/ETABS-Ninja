@@ -3,9 +3,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from etabsninja.general_functions import *
-from colorama import Fore, Style
+from etabsninja.settings import Settings
 
-def get_story_data(SapModel):
+
+def get_story_data(_SapModel):
     """
     returns:
     story_data (list). The is a nested list with each element consists of
@@ -38,7 +39,7 @@ def get_story_data(SapModel):
     story_data = pd.DataFrame(story_data_dict)
     return story_data
 
-def get_all_frames(SapModel):
+def get_all_frames(_SapModel):
     """
     Returns:
     frames_data (DataFrame): A DataFrame with data of all frames.
@@ -97,7 +98,7 @@ def get_all_frames(SapModel):
     
     return frames_data
 
-def get_all_materials(SapModel):
+def get_all_materials(_SapModel):
     """
     Gets the materials in the current model. Will return in units mm, N & MPa.
     
@@ -137,7 +138,7 @@ def get_all_materials(SapModel):
             materials[mat_name]={'mat_name':mat_name,'mat_type':mat_type};
     return materials;
 
-def get_all_points(SapModel,inc_restraint=True):
+def get_all_points(_SapModel,inc_restraint=True):
     """
     This will return all the points of the model.
     
@@ -178,179 +179,192 @@ def get_all_points(SapModel,inc_restraint=True):
     
     return points_data
 
-def get_StoryDriftsForStories(SapModel, LoadCaseList=["Dead"], predefined_max_drift = 0.0025):
-    """
-    returns:
-    df (DataFrame). A data frame with all the drifts of the stories for a single case. 
-    """
-    #Get the data using API
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(LoadCaseList)
-    TableName = "Story Drifts"
-    TableFields = SapModel.DatabaseTables.GetAllFieldsInTable(TableName)[2]
-    JointDrifts = SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[4]
-    TableFieldsIncluded = SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[2]
-    # Determine the number of columns
-    NumColumns = len(TableFieldsIncluded)
+class Results:
+    """Overall class to manage etabs model results."""
 
-    # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
-    joint_drifts_array = [JointDrifts[i:i+NumColumns] for i in range(0, len(JointDrifts), NumColumns)]
+    def __init__(self, SapModel):
+        """Initialize the results."""
+        self._settings = Settings()
+        self._LoadCaseList = self._settings.LoadCaseList
+        self._building_height = 100 # GET IT FROM MODEL
+        self._JointsGroupName = self._settings.JointsGroupName
+        self._max_BuildingDrift = self._settings.max_BuildingDrift
+        self._max_InterstoryDrift = self._settings.max_InterstoryDrift
+        self._SapModel = SapModel
 
-    # Create the DataFrame using the reshaped array and the column names
-    df = pd.DataFrame(joint_drifts_array, columns=TableFieldsIncluded)
+    def StoryDriftsForStories(self):
+        """
+        returns:
+        df (DataFrame). A data frame with all the drifts of the stories for a single case. 
+        """
+        #Get the data using API
+        self._SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(self._LoadCaseList)
+        TableName = "Story Drifts"
+        TableFields = self._SapModel.DatabaseTables.GetAllFieldsInTable(TableName)[2]
+        JointDrifts = self._SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[4]
+        TableFieldsIncluded = self._SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[2]
+        # Determine the number of columns
+        NumColumns = len(TableFieldsIncluded)
 
-    # Convert 'Drift' column to float
-    df[['Drift']] = df[['Drift']].astype(float)
+        # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
+        joint_drifts_array = [JointDrifts[i:i+NumColumns] for i in range(0, len(JointDrifts), NumColumns)]
 
-    # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'Drift'
-    df = df.groupby(['Story','Direction'])[['Drift']].agg(['max'])
+        # Create the DataFrame using the reshaped array and the column names
+        df = pd.DataFrame(joint_drifts_array, columns=TableFieldsIncluded)
 
-    # Flatten the column names by joining them with an underscore
-    df.columns = ['_'.join(col).strip() for col in df.columns.values]
+        # Convert 'Drift' column to float
+        df[['Drift']] = df[['Drift']].astype(float)
 
-    # Reset the index to make 'Story' a regular column
-    df.reset_index(inplace=True)
+        # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'Drift'
+        df = df.groupby(['Story','Direction'])[['Drift']].agg(['max'])
 
-    # Pivot the DataFrame to create separate columns for 'DriftX' and 'DriftY' values
-    df = df.pivot(index='Story', columns='Direction', values='Drift_max').reset_index()
+        # Flatten the column names by joining them with an underscore
+        df.columns = ['_'.join(col).strip() for col in df.columns.values]
 
-    # Rename the columns
-    df.columns = ['Story', 'DriftX_max', 'DriftY_max']
+        # Reset the index to make 'Story' a regular column
+        df.reset_index(inplace=True)
 
-    # Sort the DataFrame by 'Story' column in alphabetical order
-    df = df.sort_values('Story', ascending=True)
+        # Pivot the DataFrame to create separate columns for 'DriftX' and 'DriftY' values
+        df = df.pivot(index='Story', columns='Direction', values='Drift_max').reset_index()
 
-    # Create a scatter plot with lines connecting the points
-    plt.plot(df['DriftX_max'], df['Story'], label='DriftX_max')
-    plt.plot(df['DriftY_max'], df['Story'], label='DriftY_max')
+        # Rename the columns
+        df.columns = ['Story', 'DriftX_max', 'DriftY_max']
 
-    # Add labels and title
-    plt.xlabel('Drift')
-    plt.title('Drift vs. Story')
-    # Add a legend
-    plt.legend()
+        # Sort the DataFrame by 'Story' column in alphabetical order
+        df = df.sort_values('Story', ascending=True)
 
-    # Get the maximum value of Drifts
-    max_drift_x = df['DriftX_max'].max()
-    max_drift_y = df['DriftY_max'].max()
+        # Create a scatter plot with lines connecting the points
+        plt.plot(df['DriftX_max'], df['Story'], label='DriftX_max')
+        plt.plot(df['DriftY_max'], df['Story'], label='DriftY_max')
 
-    bold_terminal("Story drift for stories check")
-    FU("Drift X", max_drift_x, predefined_max_drift)
-    FU("Drift Y", max_drift_y, predefined_max_drift)
+        # Add labels and title
+        plt.xlabel('Drift')
+        plt.title('Drift vs. Story')
+        # Add a legend
+        plt.legend()
 
-    return df
+        # Get the maximum value of Drifts
+        max_drift_x = df['DriftX_max'].max()
+        max_drift_y = df['DriftY_max'].max()
 
-def get_StoryDriftsForJoints(SapModel, LoadCaseList=["Dead"], GroupName="All", predefined_max_drift = 0.0025):
-    """
-    returns:
-    df (DataFrame). A data frame with all the drifts of selected column Joints for all the stories. 
-    """
-    JointsGroupName = GroupName # Put "All" for all nodes of the model
-    TableName = "Joint Drifts"
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(LoadCaseList)
-    TableFields = SapModel.DatabaseTables.GetAllFieldsInTable(TableName)[2]
-    JointDrifts = SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, JointsGroupName)[4]
-    TableFieldsIncluded = SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[2]
+        bold_terminal("Story drift for stories check")
+        FU("Drift X", max_drift_x, self._max_InterstoryDrift)
+        FU("Drift Y", max_drift_y, self._max_InterstoryDrift)
 
-    # Determine the number of columns
-    NumColumns = len(TableFieldsIncluded)
+        return df
 
-    # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
-    joint_drifts_array = [JointDrifts[i:i+NumColumns] for i in range(0, len(JointDrifts), NumColumns)]
+    def StoryDriftsForJoints(self):
+        """
+        returns:
+        df (DataFrame). A data frame with all the drifts of selected column Joints for all the stories. 
+        """
+        TableName = "Joint Drifts"
+        self._SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(self._LoadCaseList)
+        TableFields = self._SapModel.DatabaseTables.GetAllFieldsInTable(TableName)[2]
+        JointDrifts = self._SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, self._JointsGroupName)[4]
+        TableFieldsIncluded = self._SapModel.DatabaseTables.GetTableForDisplayArray(TableName, TableFields, "All")[2]
 
-    # Create the DataFrame using the reshaped array and the column names
-    df = pd.DataFrame(joint_drifts_array, columns=TableFieldsIncluded)
-    # Convert 'DriftX' and 'DriftY' columns to float
-    df[['DriftX', 'DriftY']] = df[['DriftX', 'DriftY']].astype(float)
+        # Determine the number of columns
+        NumColumns = len(TableFieldsIncluded)
 
-    # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'DriftX' and 'DriftY'
-    df = df.groupby('Story')[['DriftX', 'DriftY']].agg(['max'])
+        # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
+        joint_drifts_array = [JointDrifts[i:i+NumColumns] for i in range(0, len(JointDrifts), NumColumns)]
 
-    # Flatten the column names by joining them with an underscore
-    df.columns = ['_'.join(col).strip() for col in df.columns.values]
+        # Create the DataFrame using the reshaped array and the column names
+        df = pd.DataFrame(joint_drifts_array, columns=TableFieldsIncluded)
+        # Convert 'DriftX' and 'DriftY' columns to float
+        df[['DriftX', 'DriftY']] = df[['DriftX', 'DriftY']].astype(float)
 
-    # Reset the index to make 'Story' a regular column
-    df.reset_index(inplace=True)
+        # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'DriftX' and 'DriftY'
+        df = df.groupby('Story')[['DriftX', 'DriftY']].agg(['max'])
 
-    # Sort the DataFrame by 'Story' column in alphabetical order
-    df = df.sort_values('Story', ascending=True)
+        # Flatten the column names by joining them with an underscore
+        df.columns = ['_'.join(col).strip() for col in df.columns.values]
 
-    # Create a scatter plot with lines connecting the points
-    plt.figure()
-    plt.plot(df['DriftX_max'], df['Story'], label='DriftX_max')
-    plt.plot(df['DriftY_max'], df['Story'], label='DriftY_max')
+        # Reset the index to make 'Story' a regular column
+        df.reset_index(inplace=True)
 
-    # Add labels and title
-    plt.xlabel('Drift')
-    plt.title('Drift vs. Story')
-    # Add a legend
-    plt.legend()
+        # Sort the DataFrame by 'Story' column in alphabetical order
+        df = df.sort_values('Story', ascending=True)
 
-    # Get the maximum value of Drifts
-    max_drift_x = df['DriftX_max'].max()
-    max_drift_y = df['DriftY_max'].max()
+        # Create a scatter plot with lines connecting the points
+        plt.figure()
+        plt.plot(df['DriftX_max'], df['Story'], label='DriftX_max')
+        plt.plot(df['DriftY_max'], df['Story'], label='DriftY_max')
 
-    bold_terminal("Story drift for selected joints check")
-    FU("Drift X", max_drift_x, predefined_max_drift)
-    FU("Drift Y", max_drift_y, predefined_max_drift)
-    
-    return df
+        # Add labels and title
+        plt.xlabel('Drift')
+        plt.title('Drift vs. Story')
+        # Add a legend
+        plt.legend()
 
-def get_DiaphragmCMDisplacements(SapModel, LoadCaseList=["Dead"], building_height = 100,max_BuildingDrift=1/400):
-    """
-    Parameters:
-        SapModel: Active SapModel to get results from.
-        LoadCaseList (list): List of load cases to get results from. 
-        building_height (int): Total building height, in ft.
-        max_BuildingDrift (float): Maximum alllowable building drift.
-    returns:
-    df (DataFrame). A data frame with all the Center of Mass displacement of the stories for a list of cases. 
-    """
-    #Get the data using API
-    SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(LoadCaseList)
-    TableFields = SapModel.DatabaseTables.GetAllFieldsInTable('Diaphragm Center Of Mass Displacements')[3]
-    CMDisplacements = SapModel.DatabaseTables.GetTableForDisplayArray('Diaphragm Center Of Mass Displacements', TableFields, "All")[4]
-    TableFieldsIncluded = SapModel.DatabaseTables.GetTableForDisplayArray('Diaphragm Center Of Mass Displacements', TableFields, "All")[2]
+        # Get the maximum value of Drifts
+        max_drift_x = df['DriftX_max'].max()
+        max_drift_y = df['DriftY_max'].max()
 
-    # Determine the number of columns
-    NumColumns = len(TableFieldsIncluded)
+        bold_terminal("Story drift for selected joints check")
+        FU("Drift X", max_drift_x, self._max_InterstoryDrift)
+        FU("Drift Y", max_drift_y, self._max_InterstoryDrift)
+        
+        return df
 
-    # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
-    CMDisplacements_array = [CMDisplacements[i:i+NumColumns] for i in range(0, len(CMDisplacements), NumColumns)]
-    # Create the DataFrame using the reshaped array and the column names
-    df = pd.DataFrame(CMDisplacements_array, columns=TableFieldsIncluded)
+    def DiaphragmCMDisplacements(self):
+        """
+        Parameters:
+            SapModel: Active SapModel to get results from.
+            LoadCaseList (list): List of load cases to get results from. 
+            building_height (int): Total building height, in ft.
+            max_BuildingDrift (float): Maximum alllowable building drift.
+        returns:
+        df (DataFrame). A data frame with all the Center of Mass displacement of the stories for a list of cases. 
+        """
+        #Get the data using API
+        self._SapModel.DatabaseTables.SetLoadCasesSelectedForDisplay(self._LoadCaseList)
+        TableFields = self._SapModel.DatabaseTables.GetAllFieldsInTable('Diaphragm Center Of Mass Displacements')[3]
+        CMDisplacements = self._SapModel.DatabaseTables.GetTableForDisplayArray('Diaphragm Center Of Mass Displacements', TableFields, "All")[4]
+        TableFieldsIncluded = self._SapModel.DatabaseTables.GetTableForDisplayArray('Diaphragm Center Of Mass Displacements', TableFields, "All")[2]
 
-    # Convert 'UY' and 'UY column to float
-    df[['UX','UY']] = df[['UX','UY']].astype(float)
+        # Determine the number of columns
+        NumColumns = len(TableFieldsIncluded)
 
-    # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'Drift'
-    # df = df.groupby(['Story'])[['UX', 'UY']].agg(['max','min'])
-    df = df.groupby('Story')[['UX', 'UY']].agg(lambda x: abs(x).max())
+        # Reshape the JointDrifts list into a 2D array with the appropriate dimensions
+        CMDisplacements_array = [CMDisplacements[i:i+NumColumns] for i in range(0, len(CMDisplacements), NumColumns)]
+        # Create the DataFrame using the reshaped array and the column names
+        df = pd.DataFrame(CMDisplacements_array, columns=TableFieldsIncluded)
 
-    # Reset the index to make 'Story' a regular column
-    df.reset_index(inplace=True)
+        # Convert 'UY' and 'UY column to float
+        df[['UX','UY']] = df[['UX','UY']].astype(float)
 
-    # Sort the DataFrame by 'Story' column in alphabetical order
-    df = df.sort_values('Story', ascending=True)
+        # Group the DataFrame by 'Story' and calculate the minimum and maximum values of 'Drift'
+        # df = df.groupby(['Story'])[['UX', 'UY']].agg(['max','min'])
+        df = df.groupby('Story')[['UX', 'UY']].agg(lambda x: abs(x).max())
 
-    # Create a scatter plot with lines connecting the points
-    plt.figure()
-    plt.plot(df['UX'], df['Story'], label='UX_max')
-    # plt.plot(df['UX_min'], df['Story'], label='UX_min')
-    plt.plot(df['UY'], df['Story'], label='UY_max')
-    # plt.plot(df['UY_min'], df['Story'], label='UY_min')
+        # Reset the index to make 'Story' a regular column
+        df.reset_index(inplace=True)
 
-    # Add labels and title
-    plt.xlabel('CM Displacement')
-    plt.title('CM Displacement vs. Story')
-    # Add a legend
-    plt.legend()    
+        # Sort the DataFrame by 'Story' column in alphabetical order
+        df = df.sort_values('Story', ascending=True)
 
-    # Get the maximum value of Drifts
-    max_displacement_x = df['UX'].max()
-    max_displacement_y = df['UY'].max()
+        # Create a scatter plot with lines connecting the points
+        plt.figure()
+        plt.plot(df['UX'], df['Story'], label='UX_max')
+        # plt.plot(df['UX_min'], df['Story'], label='UX_min')
+        plt.plot(df['UY'], df['Story'], label='UY_max')
+        # plt.plot(df['UY_min'], df['Story'], label='UY_min')
 
-    bold_terminal("Diaphragm Center of Mass total displacement check")
-    FU("CM Displacement X", max_displacement_x, building_height*12*max_BuildingDrift)
-    FU("CM Displacement Y", max_displacement_y, building_height*12*max_BuildingDrift)
+        # Add labels and title
+        plt.xlabel('CM Displacement')
+        plt.title('CM Displacement vs. Story')
+        # Add a legend
+        plt.legend()    
 
-    return df
+        # Get the maximum value of Drifts
+        max_displacement_x = df['UX'].max()
+        max_displacement_y = df['UY'].max()
+
+        bold_terminal("Diaphragm Center of Mass total displacement check")
+        FU("CM Displacement X", max_displacement_x, self._building_height*12*self._max_BuildingDrift)
+        FU("CM Displacement Y", max_displacement_y, self._building_height*12*self._max_BuildingDrift)
+
+        return df
+
