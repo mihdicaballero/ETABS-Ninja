@@ -185,12 +185,13 @@ class Results:
     def __init__(self, SapModel):
         """Initialize the results."""
         self._settings = Settings()
+        self._SapModel = SapModel
         self._LoadCaseList = self._settings.LoadCaseList
         self._building_height = 100 # GET IT FROM MODEL
         self._JointsGroupName = self._settings.JointsGroupName
         self._max_BuildingDrift = self._settings.max_BuildingDrift
         self._max_InterstoryDrift = self._settings.max_InterstoryDrift
-        self._SapModel = SapModel
+        
 
     def StoryDriftsForStories(self):
         """
