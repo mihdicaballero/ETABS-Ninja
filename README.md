@@ -21,10 +21,10 @@ The ETABS-Ninja repository aims to harness the potential of the ETABS API by pro
 To get started with ETABS-Ninja, follow these steps:
 
 1. Clone the repository to your local machine using the following command:
-`git clone https://github.com/your-username/etabs-ninja.git`
+`git clone https://github.com/mihdicaballero/etabs-ninja.git`
 
 2. Install the required dependencies by running:
-`pip install -r requirements.txt`
+`pip install -r requirements.txt` or `conda install --file requirements.txt`
 
 3. Browse the collection of scripts in the repository and select the ones that align with your requirements. Feel free to modify and customize them to suit your specific needs.
 
