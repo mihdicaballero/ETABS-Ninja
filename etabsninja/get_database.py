@@ -26,8 +26,12 @@ class DatabaseTables:
         return table_key in all_table
 
     def read(self, table_key: str, to_dataframe: bool = False) -> Optional[pd.DataFrame]:
-        data = self.read_table(table_key)
-        if data is None:
+        try:
+            data = self.read_table(table_key)
+            if data is None:
+                raise ValueError("No data returned. The model must be analyzed first to show results.")
+        except Exception as e:
+            print(f"Error: {str(e)}")
             return None
         if to_dataframe:
             df = self.reshape_data_to_df(data)
